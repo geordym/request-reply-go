@@ -1,8 +1,12 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
 Resources:
+  # Lambda Function
   GoLambdaFunction:
     Type: AWS::Serverless::Function
     Metadata:
-        BuildMethod: makefile
+      BuildMethod: makefile
     Properties:
       Handler: main
       Runtime: go1.x
@@ -16,11 +20,59 @@ Resources:
           Type: Api
           Properties:
             Path: /your-path
-            Method: GET  # Puedes cambiar el método según lo necesites
-            RestApiId: !Ref GoApiGateway  
+            Method: GET
+            RestApiId: !Ref GoApiGateway
+      Environment:
+        Variables:
+          JOB_QUEUE_URL: !Ref JobQueue
+          JOB_RESULT_QUEUE_URL: !Ref JobResultQueue
+          DYNAMO_TABLE_NAME: !Ref ProcessStateTable
 
+  # API Gateway
   GoApiGateway:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: GoLambdaApi
       Description: API para invocar la Lambda GoLambdaFunction
+
+  # SQS Queue for Job Queue
+  JobQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: JobQueue
+
+  # SQS Queue for Job Results
+  JobResultQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: JobResultQueue
+
+  # DynamoDB Table for Process State
+  ProcessStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ProcessState
+      AttributeDefinitions:
+        - AttributeName: processId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: processId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  ApiUrl:
+    Description: "URL de la API Gateway"
+    Value: !Sub "https://${GoApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/your-path"
+
+  JobQueueUrl:
+    Description: "URL de la SQS Job Queue"
+    Value: !Ref JobQueue
+
+  JobResultQueueUrl:
+    Description: "URL de la SQS Job Result Queue"
+    Value: !Ref JobResultQueue
+
+  DynamoTableName:
+    Description: "Nombre de la tabla DynamoDB"
+    Value: !Ref ProcessStateTable
