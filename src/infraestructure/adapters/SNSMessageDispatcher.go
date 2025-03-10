@@ -9,19 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/geordy/request-reply-lambda-go/src/domain/models"
 )
 
 type SNSMessageDispatcher struct{}
 
-func NuevoSNSMessageDispatcher(region, topicArn string) (*SNSMessageDispatcher, error) {
-
-	return &SNSMessageDispatcher{Client: client, TopicArn: topicArn}, nil
-}
-
-// EnviarMensaje publica un mensaje en SNS con atributos
-func (s *SNSMessageDispatcher) EnviarMensaje(message MessageModel) (string, error) {
+func (s *SNSMessageDispatcher) EnviarMensaje(message models.MessageModel) (*string, error) {
 
 	topicArn := ""
+	region := "us-east-1"
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
 	if err != nil {
@@ -33,29 +29,36 @@ func (s *SNSMessageDispatcher) EnviarMensaje(message MessageModel) (string, erro
 	// Serializar Payload a JSON
 	messageBody, err := json.Marshal(message.Payload)
 	if err != nil {
-		return "", fmt.Errorf("error al serializar payload: %v", err)
+		return nil, fmt.Errorf("error al serializar payload: %v", err)
 	}
 
 	// Construir atributos dinámicos
-	messageAttributes := map[string]sns.MessageAttributeValue{}
+	/*messageAttributes := map[string]sns.MessageAttributeValue{}
 	for key, value := range message.Attributes {
+		// Realizar la assertión de tipo a string
+		strValue, ok := value.(string)
+		if !ok {
+			// Si no es una cadena, manejar el error o continuar
+			return nil, nil
+		}
+
+		// Asignar el valor convertido a aws.String
 		messageAttributes[key] = sns.MessageAttributeValue{
 			DataType:    aws.String("String"),
-			StringValue: aws.String(value),
+			StringValue: aws.String(strValue),
 		}
-	}
+	} */
 
-	// Publicar mensaje en SNS
 	resp, err := client.Publish(context.TODO(), &sns.PublishInput{
 		Message:           aws.String(string(messageBody)),
-		TopicArn:          aws.String(s.topicArn),
-		MessageAttributes: messageAttributes,
+		TopicArn:          aws.String(topicArn),
+		MessageAttributes: nil,
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("error al publicar mensaje en SNS: %v", err)
+		return nil, fmt.Errorf("error al publicar mensaje en SNS: %v", err)
 	}
 
 	fmt.Println("Mensaje publicado con ID:", *resp.MessageId)
-	return *resp.MessageId, nil
+	return resp.MessageId, nil
 }
