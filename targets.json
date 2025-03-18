@@ -1,0 +1,37 @@
+{
+    "targets": [
+        {
+            "TARGET_KEY": "TCPDF",
+            "TARGET_TYPE": "SQS",
+            "TARGET_CONFIG": {
+                "QueueName": "myQueue1",
+                "Region": "us-east-1",
+                "VisibilityTimeout": 30,
+                "MaxMessageSize": 262144,
+                "Url": "https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest"
+            }
+        },
+        {
+            "TARGET_KEY": "DOMPDF",
+            "TARGET_TYPE": "SQS",
+            "TARGET_CONFIG": {
+                "QueueName": "myQueue2",
+                "Region": "us-west-2",
+                "VisibilityTimeout": 60,
+                "MaxMessageSize": 524288,
+                "Url": "https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest"
+            }
+        },
+        {
+            "TARGET_KEY": "FPDF",
+            "TARGET_TYPE": "SQS",
+            "TARGET_CONFIG": {
+                "QueueName": "myQueue2",
+                "Region": "us-west-2",
+                "VisibilityTimeout": 60,
+                "MaxMessageSize": 524288,
+                "Url": "https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest"
+            }
+        }
+    ]
+}

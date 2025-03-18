@@ -10,7 +10,7 @@ Resources:
       Handler: main
       Runtime: go1.x
       MemorySize: 512
-      Timeout: 15
+      Timeout: 35
       Architectures:
       - x86_64
       CodeUri: GoLambdaFunction
@@ -19,7 +19,7 @@ Resources:
           Type: Api
           Properties:
             Path: /your-path
-            Method: GET
+            Method: POST
             RestApiId:
               Ref: GoApiGateway
       Environment:
@@ -30,6 +30,11 @@ Resources:
             Ref: JobResultQueue
           DYNAMO_TABLE_NAME:
             Ref: ProcessStateTable
+          JOB_QUEUE_DOMPDF_URL: https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest
+          JOB_QUEUE_FPDF_URL: https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest
+          JOB_QUEUE_TCPDF_URL: https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest
+          LAMBDA_AWS_REGION: us-east-1
+          TARGETS_FILE_PATH: /var/task/targets.json
   GoApiGateway:
     Type: AWS::ApiGateway::RestApi
     Properties:

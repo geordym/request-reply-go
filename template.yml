@@ -11,43 +11,45 @@ Resources:
       Handler: main
       Runtime: go1.x
       MemorySize: 512
-      Timeout: 15
+      Timeout: 35
       Architectures:
         - x86_64  
       CodeUri: .
       Events:
-        ApiGateway:
+        ApiGateway: 
           Type: Api
           Properties:
             Path: /your-path
-            Method: GET
+            Method: POST
             RestApiId: !Ref GoApiGateway
       Environment:
         Variables:
           JOB_QUEUE_URL: !Ref JobQueue
           JOB_RESULT_QUEUE_URL: !Ref JobResultQueue
           DYNAMO_TABLE_NAME: !Ref ProcessStateTable
+          JOB_QUEUE_DOMPDF_URL: "https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest"
+          JOB_QUEUE_FPDF_URL: "https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest"
+          JOB_QUEUE_TCPDF_URL: "https://sqs.us-east-1.amazonaws.com/575108961165/ColaTest"
+          LAMBDA_AWS_REGION: "us-east-1"
+          TARGETS_FILE_PATH: "/var/task/targets.json"
 
-  # API Gateway
+
   GoApiGateway:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: GoLambdaApi
       Description: API para invocar la Lambda GoLambdaFunction
 
-  # SQS Queue for Job Queue
   JobQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: JobQueue
 
-  # SQS Queue for Job Results
   JobResultQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: JobResultQueue
 
-  # DynamoDB Table for Process State
   ProcessStateTable:
     Type: AWS::DynamoDB::Table
     Properties:
