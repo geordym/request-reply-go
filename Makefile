@@ -19,4 +19,4 @@ build-GoLambdaFunction:
 zip:
 	zip build/bootstrap.zip bootstrap targets.json
 
-deploy: clean copyresources build-arm64 zip
+deploy: clean build-arm64 zip

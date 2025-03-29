@@ -9,6 +9,7 @@ import (
 	"github.com/geordy/request-reply-lambda-go/src/infraestructure/adapters"
 	"github.com/geordy/request-reply-lambda-go/src/infraestructure/configuration"
 	"github.com/geordy/request-reply-lambda-go/src/infraestructure/models"
+	"github.com/geordy/request-reply-lambda-go/src/infraestructure/sqs/util"
 	"github.com/google/uuid"
 )
 
@@ -36,27 +37,31 @@ func (h *RequestHandler) HandleRequest(request events.APIGatewayProxyRequest) (e
 		log.Fatal("Error al convertir PDFRequest a JSON:", err)
 	}
 
+	var target = pdfRequest.Target
+
 	var messageRequest = models.MessageModel{
 		JobId:   uuid.New().String(),
 		Payload: string(pdfRequestJSON),
 	}
 
-	messageRequestJson, err := json.Marshal(messageRequest)
-	if err != nil {
-		log.Fatal("Error al convertir messageRequest a JSON:", err)
+	messageRequestSerializer, err3 := h.findMessageSerializerByTarget(target)
+	if err3 != nil {
+		log.Fatal("Error al convertir PDFRequest a JSON:", err3)
 	}
+
+	messageRequestSerializedJson := messageRequestSerializer.SerializeMessage(messageRequest)
+
+	messageRequestJsonString := string(messageRequestSerializedJson)
+	log.Println(messageRequestJsonString)
 
 	sqsMessagePublisher, err := adapters.NewSQSMessagePublisher()
 	if err != nil {
 		log.Fatal("Error al obtener JobResult:", err)
 	}
 
-	messageRequestJsonString := string(messageRequestJson)
-	log.Println(messageRequestJsonString)
-
 	var messageId, err1 = sqsMessagePublisher.PublishMessage(messageRequestJsonString, h.findSQSUrlToProccessRequest(pdfRequest.Target))
 	if err1 != nil {
-		log.Fatal("Error al obtener message:", err)
+		log.Fatal("Error al obtener message:", err1)
 	}
 
 	fmt.Printf("PDFRequest: %+v\n", pdfRequest)
@@ -79,6 +84,24 @@ func (h *RequestHandler) findSQSUrlToProccessRequest(targetKey string) string {
 
 	log.Fatalf("La clave 'Url' no existe en el target con la clave '%s'", targetKey)
 	return ""
+}
+
+func (h *RequestHandler) findMessageSerializerByTarget(target string) (util.ISQSMessageSerializer, error) {
+	t, err := configuration.FindTargetByKey(target)
+	if err != nil {
+		return nil, fmt.Errorf("error finding target: %v", err)
+	}
+
+	var messageSerializer util.ISQSMessageSerializer
+
+	switch target {
+	case "DOMPDF":
+		messageSerializer = util.LaravelSQSMessageSerializer{}
+	default:
+		return nil, fmt.Errorf("no serializer found for MESSAGE_TEMPLATE: %s", t.MESSAGE_TEMPLATE)
+	}
+
+	return messageSerializer, nil
 }
 
 type PDFRequest struct {

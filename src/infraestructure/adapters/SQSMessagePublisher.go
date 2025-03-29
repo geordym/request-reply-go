@@ -3,6 +3,7 @@ package adapters
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -28,7 +29,8 @@ func NewSQSMessagePublisher() (*SQSMessagePublisher, error) {
 }
 
 func (j *SQSMessagePublisher) PublishMessage(message string, queueUrl string) (string, error) {
-	fmt.Println("LA URL DE LA COLA ES " + queueUrl)
+
+	log.Println("La url del SQS ES: " + queueUrl)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

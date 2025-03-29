@@ -7,9 +7,11 @@ import (
 )
 
 type Target struct {
-	TARGET_KEY    string                 `json:"TARGET_KEY"`
-	TARGET_TYPE   string                 `json:"TARGET_TYPE"`
-	TARGET_CONFIG map[string]interface{} `json:"TARGET_CONFIG"`
+	TARGET_KEY         string                 `json:"TARGET_KEY"`
+	TARGET_TYPE        string                 `json:"TARGET_TYPE"`
+	TARGET_CONFIG      map[string]interface{} `json:"TARGET_CONFIG"`
+	MESSAGE_TEMPLATE   string                 `json:"MESSAGE_TEMPLATE"`
+	MESSAGE_SERIALIZER string
 }
 
 type Config struct {
